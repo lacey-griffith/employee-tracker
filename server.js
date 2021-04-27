@@ -6,10 +6,22 @@ const app = express();
 //middleware
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
+//connent to database
+const mysql = require('mysql2');
+//security
+require('dotenv').config();
+let pw = process.env.pw;
+let database = process.env.database;
 
-
-
-
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: `${pw}`,
+      database: `${database}`
+    },
+    console.log(`Connected to the ${database} database.`)
+  );
 
 
 
@@ -18,6 +30,7 @@ app.get('/', (req, res) => {
         message: 'Oh hello, world.'
     })
 })
+//respond to requests not found
 app.use((req, res) => {
     res.status(404).end();
 })
