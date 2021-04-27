@@ -40,13 +40,29 @@ app.get('/api/employees', (req, res) => {
   })
 })
 
-//get single employee 1 is hardcoded
+//get one employee
+app.get('/api/employees/:id', (req, res) => {
+  const sql = `SELECT * FROM employees WHERE id = ?`;
+  const params = [req.params.id]
+
+  db.query(sql, params, (err, row) => {
+    if(err){
+      res.status(400).json({error: err.message})
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: row
+    })
+  })
+})
 // db.query(`SELECT * FROM employees WHERE id = 2`, (err, row) => {
 //   if (err) {
 //     console.log(err);
 //   }
 //   console.log(row);
 // });
+
 
 // Delete an employee
 // db.query(`DELETE FROM employees WHERE id = ?`, 1, (err, result) => {
