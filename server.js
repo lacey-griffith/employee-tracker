@@ -25,9 +25,20 @@ const db = mysql.createConnection(
 
 
 //get all employees
-// db.query('SELECT * FROM employees', (err, rows) => {
-//     console.log(rows);
-// })
+app.get('/api/employees', (req, res) => {
+  const sql = `SELECT * FROM employees`;
+
+  db.query(sql, (err, rows) => {
+    if(err){
+      res.status(500).json({error: err.message});
+      return
+    }
+    res.json({
+      message: 'success',
+      data: rows
+    })
+  })
+})
 
 //get single employee 1 is hardcoded
 // db.query(`SELECT * FROM employees WHERE id = 2`, (err, row) => {
