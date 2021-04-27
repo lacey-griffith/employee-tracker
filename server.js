@@ -25,10 +25,8 @@ const db = mysql.createConnection(
 
 
 
-app.get('/', (req, res) => {
-    res.json({
-        message: 'Oh hello, world.'
-    })
+db.query('SELECT * FROM employees', (err, rows) => {
+    console.log(rows);
 })
 //respond to requests not found
 app.use((req, res) => {
