@@ -1,4 +1,14 @@
-INSERT INTO employees (first_name, last_name, role, department, manager, salary)
+INSERT INTO employees (first_name, last_name)
 VALUES
-('Vicki','Trevors','cashier','sales','John Miller',20000),
-('John','Miller','manager','sales','Polly Martin', 45000);
+('Vicki','Trevors'),
+('John','Miller'),
+('Ronald', 'Firbank'),
+('Virginia', 'Woolf'),
+('Piers', 'Gaveston'),
+('Charles', 'LeRoi'),
+('Katherine', 'Mansfield'),
+('Dora', 'Carrington'),
+('Edward', 'Bellamy'),
+('Montague', 'Summers'),
+('Octavia', 'Butler'),
+('Unica', 'Zurn');
