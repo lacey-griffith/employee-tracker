@@ -1,19 +1,29 @@
- CREATE TABLE employees (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(30) NOT NULL,
-    last_name VARCHAR(30) NOT NULL
-    -- role_id
-    -- manager_id
-    );
+DROP DATABASE IF EXISTS company;
+CREATE DATABASE company;
+USE company;
 
-CREATE TABLE roles (
-   id INT(10) NOT NULL,
-   title VARCHAR(30) NOT NULL,
-   salary DECIMAL(15,2)
-   -- department_id
-);
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS departments;
 
 CREATE TABLE departments (
-   id INT(10) NOT NULL,
+   id INT PRIMARY KEY,
    dept_name VARCHAR(30)
 );
+
+CREATE TABLE roles (
+   id INT PRIMARY KEY,
+   title VARCHAR(30) NOT NULL,
+   salary DECIMAL(15,2),
+   dept_id INT,
+   CONSTRAINT fk_dept FOREIGN KEY (dept_id) REFERENCES departments(id) ON DELETE SET NULL
+);
+
+CREATE TABLE employees (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   first_name VARCHAR(30) NOT NULL,
+   last_name VARCHAR(30) NOT NULL,
+   role_id INT,
+   CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
+   --manager_id
+   );

@@ -1,19 +1,19 @@
-INSERT INTO employees (first_name, last_name)
+INSERT INTO employees (first_name, last_name, role_id)
 VALUES
-('Vicki','Trevors'),
-('John','Miller'),
-('Jasmine','Swillman'),
-('Ronald', 'Firbank'),
-('Virginia', 'Woolf'),
-('Piers', 'Gaveston'),
-('Charles', 'LeRoi'),
-('Katherine', 'Mansfield'),
-('Dora', 'Carrington'),
-('Edward', 'Bellamy'),
-('Montague', 'Summers'),
-('Octavia', 'Butler'),
-('Riley','Brookes'),
-('Unica', 'Zurn');
+('Vicki','Trevors', 01),
+('John','Miller', 01),
+('Jasmine','Swillman', 02),
+('Ronald', 'Firbank', 04),
+('Virginia', 'Woolf', 02),
+('Piers', 'Gaveston', 02),
+('Charles', 'LeRoi', 03),
+('Katherine', 'Mansfield' 03),
+('Dora', 'Carrington' 03),
+('Edward', 'Bellamy' 03),
+('Montague', 'Summers' 03),
+('Octavia', 'Butler', 01),
+('Riley','Brookes', 04),
+('Unica', 'Zurn', 01);
 
 INSERT INTO roles (id,title,salary)
 VALUES
