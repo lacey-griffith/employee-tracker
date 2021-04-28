@@ -1,30 +1,37 @@
+INSERT INTO departments (dept_name)
+VALUES
+('Pharmacy'),
+('Grocery'),
+('Beauty'),
+('Outdoor'),
+('General');
+
+INSERT INTO roles (title,salary,dept_id)
+VALUES
+('Director', 60000, 5),
+('General Manager',55000, 5),
+('Pharmacy Manager',50000, 1),
+('Grocery Manager',45000, 2),
+('Beauty Manager',45000, 3),
+('Outdoor Manager',45000, 4),
+('Cashier', 25000, 5);
+
 INSERT INTO employees (first_name, last_name, role_id)
 VALUES
-('Vicki','Trevors', 01),
-('John','Miller', 01),
-('Jasmine','Swillman', 02),
-('Ronald', 'Firbank', 04),
-('Virginia', 'Woolf', 02),
-('Piers', 'Gaveston', 02),
-('Charles', 'LeRoi', 03),
-('Katherine', 'Mansfield' 03),
-('Dora', 'Carrington' 03),
-('Edward', 'Bellamy' 03),
-('Montague', 'Summers' 03),
-('Octavia', 'Butler', 01),
-('Riley','Brookes', 04),
-('Unica', 'Zurn', 01);
+('Vicki','Trevors',1),
+('John','Miller',2),
+('Jasmine','Swillman',7),
+('Ronald', 'Firbank',7),
+('Virginia', 'Woolf',4),
+('Piers', 'Gaveston',7),
+('Charles', 'LeRoi',3),
+('Katherine', 'Mansfield',7),
+('Dora', 'Carrington',7),
+('Edward', 'Bellamy',4),
+('Montague', 'Summers',5),
+('Octavia', 'Butler',6),
+('Riley','Brookes',7),
+('Unica', 'Zurn',7),
+('Bradley','Morgan',7),
+('Brianna','Miller',7);
 
-INSERT INTO roles (id,title,salary)
-VALUES
-(001,'Director', 60000),
-(002,'Manager', 50000),
-(003,'Assistant Manager', 40000),
-(004,'Cashier', 20000);
-
-INSERT INTO departments (id,dept_name)
-VALUES
-(01,'Pharmacy'),
-(02,'Grocery'),
-(03,'Beauty'),
-(04,'Outdoor');

@@ -26,7 +26,40 @@ const db = mysql.createConnection({
   console.log(`Connected to the ${database} database.`)
 );
 
+//get all roles
+app.get('/api/roles',(req, res) => {
+  const sql = `SELECT roles.*, departments.dept_name FROM roles LEFT JOIN departments ON roles.dept_id = departments.id;`
 
+  db.query(sql, (err,rows) => {
+    if(err){
+      res.status(500).json({error: err.message})
+      return
+    }
+    res.json({
+      message: 'sucess',
+      data: rows
+    })
+  })
+})
+
+//get all departments
+app.get('/api/departments', (req, res) => {
+  const sql = `SELECT * FROM departments`;
+
+  db.query(sql, (err, rows) => {
+    if(err){
+      res.status(500).json({error: err.message});
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: rows
+    })
+  })
+});
+
+//need to update employees to join roles and departments to employees to display job title, dept and salary plus
+//employee id, first name and last name
 //get all employees
 app.get('/api/employees', (req, res) => {
   const sql = `SELECT * FROM employees`;

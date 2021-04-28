@@ -7,12 +7,12 @@ DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS departments;
 
 CREATE TABLE departments (
-   id INT PRIMARY KEY,
+   id INT AUTO_INCREMENT PRIMARY KEY,
    dept_name VARCHAR(30)
 );
 
 CREATE TABLE roles (
-   id INT PRIMARY KEY,
+   id INT AUTO_INCREMENT PRIMARY KEY,
    title VARCHAR(30) NOT NULL,
    salary DECIMAL(15,2),
    dept_id INT,
