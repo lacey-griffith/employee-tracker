@@ -1,27 +1,30 @@
 //allow express
 const express = require('express');
+//connent to database
+const mysql = require('mysql2');
+//connect checkEmployeeInput function
+const checkEmployeeInput = require('./utils/checkEmployeeInput')
 //PORT designation and app expression
 const PORT = process.env.PORT || 3001;
 const app = express();
 //middleware
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({
+  extended: false
+}));
 app.use(express.json());
-//connent to database
-const mysql = require('mysql2');
 //security
 require('dotenv').config();
 let pw = process.env.pw;
 let database = process.env.database;
 
-const db = mysql.createConnection(
-    {
-      host: 'localhost',
-      user: 'root',
-      password: `${pw}`,
-      database: `${database}`
-    },
-    console.log(`Connected to the ${database} database.`)
-  );
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: `${pw}`,
+    database: `${database}`
+  },
+  console.log(`Connected to the ${database} database.`)
+);
 
 
 //get all employees
@@ -29,8 +32,10 @@ app.get('/api/employees', (req, res) => {
   const sql = `SELECT * FROM employees`;
 
   db.query(sql, (err, rows) => {
-    if(err){
-      res.status(500).json({error: err.message});
+    if (err) {
+      res.status(500).json({
+        error: err.message
+      });
       return
     }
     res.json({
@@ -46,8 +51,10 @@ app.get('/api/employees/:id', (req, res) => {
   const params = [req.params.id]
 
   db.query(sql, params, (err, row) => {
-    if(err){
-      res.status(400).json({error: err.message})
+    if (err) {
+      res.status(400).json({
+        error: err.message
+      })
       return;
     }
     res.json({
@@ -55,39 +62,64 @@ app.get('/api/employees/:id', (req, res) => {
       data: row
     })
   })
-})
-// db.query(`SELECT * FROM employees WHERE id = 2`, (err, row) => {
-//   if (err) {
-//     console.log(err);
-//   }
-//   console.log(row);
-// });
-
+});
 
 // Delete an employee
-// db.query(`DELETE FROM employees WHERE id = ?`, 1, (err, result) => {
-//   if (err) {
-//     console.log(err);
-//   }
-//   console.log(result);
-// })
+app.delete('/api/employee/:id', (req, res) => {
+  const sql = `DELETE FROM employees WHERE id =?`;
+  const params = [req.params.id]
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({
+        error: err.message
+      })
+    } else if (!result.affectedRows) {
+      res.json({
+        message: 'Employee not found.'
+      })
+    } else {
+      res.json({
+        message: 'Employee deleted successfully.',
+        changes: result.affectedRows,
+        id: req.params.id
+      })
+    }
+  })
+});
 
 // Create an employee
-// const sql = `INSERT INTO employees (id, first_name, last_name) 
-//               VALUES (?,?,?)`;
-// const params = [1, 'Vicki', 'Trevors'];
+app.post('/api/employee', ({
+  body
+}, res) => {
+  const errors = checkEmployeeInput(body, 'first_name', 'last_name')
 
-// db.query(sql, params, (err, result) => {
-//   if (err) {
-//     console.log(err);
-//   }
-//   console.log(result);
-// });
+  if (errors) {
+    res.status(400).json({
+      error: errors
+    })
+    return;
+  }
+  const sql = `INSERT INTO employees (first_name, last_name) 
+              VALUES (?,?)`;
+  const params = [body.first_name, body.last_name];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({
+        error: err.message
+      })
+    }
+    res.json({
+      message: 'Employee added successfully!',
+      data: body
+    })
+  });
+})
 
 //respond to requests not found
 app.use((req, res) => {
-    res.status(404).end();
+  res.status(404).end();
 })
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
