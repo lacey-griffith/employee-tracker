@@ -4,7 +4,8 @@ VALUES
 ('Grocery'),
 ('Beauty'),
 ('Outdoor'),
-('General');
+('General'),
+('Testing Department');
 
 INSERT INTO roles (title,salary,dept_id)
 VALUES
@@ -14,7 +15,8 @@ VALUES
 ('Grocery Manager',45000, 2),
 ('Beauty Manager',45000, 3),
 ('Outdoor Manager',45000, 4),
-('Cashier', 25000, 5);
+('Cashier', 25000, 5),
+('Testing Role', 1000, 6);
 
 INSERT INTO employees (first_name, last_name, role_id)
 VALUES

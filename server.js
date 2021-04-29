@@ -2,8 +2,8 @@
 const express = require('express');
 //connent to database
 const mysql = require('mysql2');
-//connect checkEmployeeInput function
-const checkEmployeeInput = require('./utils/checkEmployeeInput')
+//connect checkInput function for adding employees, departments, roles
+const checkInput = require('./utils/checkInput')
 //PORT designation and app expression
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -25,6 +25,18 @@ const db = mysql.createConnection({
   },
   console.log(`Connected to the ${database} database.`)
 );
+// TO DO
+// [x] delete a role
+// [x] delete a department
+// [x] add a department (prompt name)
+// [] add a role (prompt role.title, salary, role.dept)
+// [] add an employee (prompt first, last, role.title, manager
+// [] update employee role
+// BONUS **
+// [] view employees by department
+// [] view employees by manager
+// [] view utilized budget of department (add salaries)
+
 
 //get all roles
 app.get('/api/roles',(req, res) => {
@@ -39,6 +51,29 @@ app.get('/api/roles',(req, res) => {
       message: 'sucess',
       data: rows
     })
+  })
+})
+
+//delete a role
+app.delete('/api/role/:id', (req, res) => {
+  const sql = `DELETE FROM roles WHERE id = ?`;
+  const params = [req.params.id];
+
+  db.query(sql, params, (err, result) => {
+    if(err) {
+      res.json({error: err.message});
+      return
+    }
+    else if (!result.affectedRows){
+      res.json({message: 'Role not found.'})
+    }
+    else {
+      res.json({
+        message: 'Role successfully deleted.',
+        changes: result.affectedRows,
+        id: req.params.id
+      })
+    }
   })
 })
 
@@ -58,8 +93,53 @@ app.get('/api/departments', (req, res) => {
   })
 });
 
-//need to update employees to join roles and departments to employees to display job title, dept and salary plus
-//employee id, first name and last name
+//delete a department
+app.delete('/api/department/:id', (req, res) => {
+  const sql = `DELETE FROM departments WHERE id = ?`;
+  const params = [req.params.id];
+
+  db.query(sql, params, (err, result) => {
+    if(err) {
+      res.json({error: err.message});
+      return
+    }
+    else if (!result.affectedRows){
+      res.json({message: 'Department not found.'})
+    }
+    else {
+      res.json({
+        message: 'Department successfully deleted.',
+        changes: result.affectedRows,
+        id: req.params.id
+      })
+    }
+  })
+})
+
+//Create a department
+app.post('/api/department', ({body},res) => {
+  const errors = checkInput(body, 'dept_name')
+  if(errors){
+    res.json({error: errors});
+    return
+  }
+  const sql = `INSERT INTO departments (dept_name) VALUES (?)`;
+  const params = [body.dept_name]
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({
+        error: err.message
+      })
+    }
+    res.json({
+      message: 'Department added successfully!',
+      data: body
+    })
+  });
+})
+
+//need to update to 
+//display employee id, first, last + role.title, role.salary and departments.dept_name, *dept.manager
 //get all employees
 app.get('/api/employees', (req, res) => {
   const sql = `SELECT * FROM employees`;
@@ -121,15 +201,11 @@ app.delete('/api/employee/:id', (req, res) => {
 });
 
 // Create an employee
-app.post('/api/employee', ({
-  body
-}, res) => {
-  const errors = checkEmployeeInput(body, 'first_name', 'last_name')
+app.post('/api/employee', ({body}, res) => {
+  const errors = checkInput(body, 'first_name', 'last_name')
 
   if (errors) {
-    res.status(400).json({
-      error: errors
-    })
+    res.status(400).json({error: errors})
     return;
   }
   const sql = `INSERT INTO employees (first_name, last_name) 
