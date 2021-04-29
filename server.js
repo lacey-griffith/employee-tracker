@@ -31,7 +31,7 @@ const db = mysql.createConnection({
 // [x] add a department (prompt name)
 // [] add a role (prompt role.title, salary, role.dept)
 // [] add an employee (prompt first, last, role.title, manager
-// [] update employee role
+// [x] update employee role
 // BONUS **
 // [] view employees by department
 // [] view employees by manager
