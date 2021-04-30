@@ -12,6 +12,7 @@ app.use(express.json());
 app.use('/api', apiRoutes)
 
 // TO DO
+// [x] view all employees w/ First, Last, ID, Title, Salary, Department 
 // [x] delete a role
 // [x] delete a department
 // [x] add a department (prompt name)

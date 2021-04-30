@@ -3,11 +3,14 @@ const router = express.Router();
 const db = require('../../db/connection');
 const checkInput = require('../../utils/checkInput');
 
-//need to update to 
-//display employee id, first, last + role.title, role.salary and departments.dept_name, *dept.manager
 //get all employees
 router.get('/employees', (req, res) => {
-    const sql = `SELECT * FROM employees`;
+    const sql = `SELECT employees.id, employees.first_name, employees.last_name, 
+    roles.title, roles.salary, 
+    departments.dept_name
+    FROM employees
+    JOIN roles ON employees.role_id = roles.id
+    JOIN departments ON roles.dept_id = departments.id`;
   
     db.query(sql, (err, rows) => {
       if (err) {
