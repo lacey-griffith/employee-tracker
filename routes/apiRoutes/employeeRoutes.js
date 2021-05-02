@@ -91,7 +91,7 @@ db.query(sql, params, (err, result) => {
     message: 'Employee added successfully!',
     data: body
     })
-});
+})
 })
 
 // update employee's role

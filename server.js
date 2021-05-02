@@ -49,15 +49,14 @@ const startMenu = () => {
       return addDept();
     }
     if(action === 'Add A Role'){
-      console.log('User selected add a role')
+      return addRole();
     }
     if(action === 'Add An Employee'){
-      console.log('User selected add an employee')
+      return addEmployee();
     }
     if(action === 'Update An Employee Role'){
-      console.log('User selected update an employee role')
+      return updateRole();
     }
-    //
     if(action === 'Delete A Department'){
       console.log('User selected to delete a department')
     }
@@ -114,11 +113,77 @@ const addDept = () => {
       const params = newDept
       db.query(sql, params, (err, result) => {
         if (err) throw err
-        console.table(result)
+        //console.table(result)
         console.log(`The ${newDept} department was added successfully.`)
         startMenu();
       })
     })
+}
+
+const addRole = () => {
+console.log('Feature under construction.')
+};
+
+const addEmployee = () => {
+  inquirer.prompt([{
+      type: 'input',
+      name: 'first_name',
+      message: `Employee's first name:`
+    }, {
+      type: 'input',
+      name: 'last_name',
+      message: `Employee's last name:`
+    }])
+    .then(newEmployee => {
+      first_name = newEmployee.first_name
+      last_name = newEmployee.last_name
+
+      const sql = `INSERT INTO employees (first_name, last_name) VALUES (?,?)`;
+      const params = [first_name, last_name]
+
+      db.query(sql, params, (err, result) => {
+        if (err) throw err
+        //console.log(result)
+        console.log(`New employee, ${first_name} ${last_name}, added successfully.`)
+        startMenu();
+      })
+    })
+}
+
+const updateRole = () => {
+  employeeArr = []
+  const sql = `SELECT * FROM employees`;
+  db.query(sql, (err, res) => {
+    for (let i = 0; i < res.length; i++) {
+      employee = [`${res[i].first_name} ${res[i].last_name}`]
+      employeeArr.push(employee)
+    }
+    inquirer.prompt({
+      type: 'list',
+      name: 'updateEmployee',
+      message: 'Which employee would you like to update?',
+      choices: employeeArr.map(employee => `${employee}`)
+    }).then(employee => {
+      let index = employee.updateEmployee.indexOf(" ")
+      let first_name = employee.updateEmployee.substr(0, index)
+      let last_name = employee.updateEmployee.substr(index + 1)
+      console.log(first_name)
+      console.log(last_name)
+
+      const sql = `SELECT * FROM employees WHERE first_name = ? AND last_name = ?`;
+      const params = [first_name, last_name]
+
+      db.query(sql, params, (err, res) => {
+        if (err) throw err
+        console.log(res)
+        //returns employee object from database
+        //find current role_id
+        //list new role options
+        //update employee's old role_id with new role_id
+        //return that employee's role has been changes to *new role title*
+      })
+    })
+  })
 }
 
 //respond to requests not found
