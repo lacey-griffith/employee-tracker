@@ -33,7 +33,7 @@ const startMenu = () => {
     type: 'list',
     name: 'selectAction',
     message: 'What would you like to do?',
-    choices: ['View All Departments', 'View All Roles', 'View All Employees','Add A Department', 'Add A Role', 'Add An Employee', 'Update An Employee Role']
+    choices: ['View All Departments', 'View All Roles', 'View All Employees','Add A Department', 'Add A Role', 'Add An Employee', 'Update An Employee Role', 'Delete A Department', 'Delete A Role', 'Delete An Employee']
   }).then(action => {
     action = action.selectAction
     if(action === 'View All Departments'){
@@ -43,11 +43,10 @@ const startMenu = () => {
       return viewRoles();
     }
     if(action === 'View All Employees'){
-      console.log('User selected view all employees')
       return viewEmployees();
     }
-    if(action === 'Add a Department'){
-      console.log('User selected add a department')
+    if(action === 'Add A Department'){
+      return addDept();
     }
     if(action === 'Add A Role'){
       console.log('User selected add a role')
@@ -58,10 +57,19 @@ const startMenu = () => {
     if(action === 'Update An Employee Role'){
       console.log('User selected update an employee role')
     }
+    //
+    if(action === 'Delete A Department'){
+      console.log('User selected to delete a department')
+    }
+    if(action === 'Delete A Role'){
+      console.log('User selected to delete a role')
+    }
+    if(action === 'Delete An Employee'){
+      console.log('User selected to delete an employee')
+    }
   })
 }
 
-//DEPT NAME and ID
 const viewDepartments = () => {
   const sql = 'SELECT * FROM departments';
   db.query(sql, (err, res) => {
@@ -71,7 +79,6 @@ const viewDepartments = () => {
   })
 }
 
-//TITLE, ROLE.ID, DEPT OF ROLE, SALARY OF ROLE
 const viewRoles = () => {
   const sql = 'SELECT roles.title, roles.id, roles.salary, departments.dept_name FROM roles JOIN departments ON roles.dept_id = departments.id';
 
@@ -82,7 +89,6 @@ const viewRoles = () => {
   })
 }
 
-//ID, FIRST, LAST, TITLE, DEPT, SALARY
 const viewEmployees= () => {
   const sql = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name
   FROM employees
@@ -94,6 +100,25 @@ const viewEmployees= () => {
     console.table(res)
     startMenu();
   })
+}
+
+const addDept = () => {
+  inquirer.prompt({
+      type: 'input',
+      name: 'dept_name',
+      message: 'What is the name of the new department?'
+    })
+    .then(newDept => {
+      newDept = newDept.dept_name
+      const sql = `INSERT INTO departments (dept_name) VALUES (?)`;
+      const params = newDept
+      db.query(sql, params, (err, result) => {
+        if (err) throw err
+        console.table(result)
+        console.log(`The ${newDept} department was added successfully.`)
+        startMenu();
+      })
+    })
 }
 
 //respond to requests not found
