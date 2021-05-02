@@ -152,36 +152,68 @@ const addEmployee = () => {
 
 const updateRole = () => {
   employeeArr = []
+  employee = {}
   const sql = `SELECT * FROM employees`;
   db.query(sql, (err, res) => {
     for (let i = 0; i < res.length; i++) {
       employee = [`${res[i].first_name} ${res[i].last_name}`]
       employeeArr.push(employee)
     }
+
     inquirer.prompt({
       type: 'list',
       name: 'updateEmployee',
       message: 'Which employee would you like to update?',
       choices: employeeArr.map(employee => `${employee}`)
+
     }).then(employee => {
       let index = employee.updateEmployee.indexOf(" ")
       let first_name = employee.updateEmployee.substr(0, index)
       let last_name = employee.updateEmployee.substr(index + 1)
-      console.log(first_name)
-      console.log(last_name)
+      //start
+      //end
+      roleArr = []
+      const sql2 = `SELECT * FROM roles`;
 
-      const sql = `SELECT * FROM employees WHERE first_name = ? AND last_name = ?`;
-      const params = [first_name, last_name]
-
-      db.query(sql, params, (err, res) => {
+      db.query(sql2, (err, res) => {
         if (err) throw err
-        console.log(res)
+        for (let i = 0; i < res.length; i++) {
+          role = `${res[i].title}`
+          roleArr.push(role)
+        }
+        inquirer.prompt({
+          type: 'list',
+          name: 'newRole',
+          message: 'Select new role.',
+          choices: roleArr.map(role => `${role}`)
+
+        }).then(newRole => {
+          console.log(newRole)
+          //start
+          const sql = `SELECT * FROM employees WHERE first_name = ? AND last_name = ?`;
+          const params = [first_name, last_name]
+          db.query(sql, params, (err, res) => {
+            if (err) throw err
+            employee.currentRole_id = res[0].role_id
+            console.log(employee, 'line 184')
+          })
+          //end
+        })
+        console.log(employee, 'moving around')
+
+        //const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+        // const params = [req.body.role_id, req.params.id];
+
+        // db.query(sql, params, (err, result) => {
+        //     if(err){
+
         //returns employee object from database
         //find current role_id
         //list new role options
         //update employee's old role_id with new role_id
         //return that employee's role has been changes to *new role title*
       })
+      console.log(employee, 'moving around')
     })
   })
 }
