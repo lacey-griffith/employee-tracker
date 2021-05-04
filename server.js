@@ -17,11 +17,13 @@ app.use('/api', apiRoutes)
 
 // TO DO routes
 // [x] view all employees w/ First, Last, ID, Title, Salary, Department 
-// [x] delete a role
-// [x] delete a department
+// [] delete a role
+// [] delete a department
+// [] delete an employee
 // [x] add a department (prompt name)
 // [] add a role (prompt role.title, salary, role.dept)
-// [] add an employee (prompt first, last, role.title, manager
+// [x] add an employee (prompt first, last, role.title, 
+// [] add manager_id?? to add employee
 // [x] update employee role
 // BONUS **
 // [] view employees by department
@@ -35,40 +37,54 @@ const startMenu = () => {
     message: 'What would you like to do?',
     choices: ['View All Departments', 'View All Roles', 'View All Employees','Add A Department', 'Add A Role', 'Add An Employee', 'Update An Employee Role', 'Delete A Department', 'Delete A Role', 'Delete An Employee']
   }).then(action => {
-    action = action.selectAction
-    if(action === 'View All Departments'){
-      return viewDepartments();
-    }
-    if(action === 'View All Roles'){
-      return viewRoles();
-    }
-    if(action === 'View All Employees'){
-      return viewEmployees();
-    }
-    if(action === 'Add A Department'){
-      return addDept();
-    }
-    if(action === 'Add A Role'){
-      return addRole();
-    }
-    if(action === 'Add An Employee'){
-      return addEmployee();
-    }
-    if(action === 'Update An Employee Role'){
-      return updateRole();
-    }
-    if(action === 'Delete A Department'){
-      console.log('User selected to delete a department')
-    }
-    if(action === 'Delete A Role'){
-      console.log('User selected to delete a role')
-    }
-    if(action === 'Delete An Employee'){
-      console.log('User selected to delete an employee')
-    }
+        action = action.selectAction
+        switch (action) {
+          case 'View All Departments':
+            viewDepartments();
+            break;
+
+          case 'View All Roles':
+            viewRoles();
+            break;
+
+          case 'View All Employees':
+            //once role_id is established for new employee, change the display back to JOIN statements
+            viewEmployees();
+            break;
+
+          case 'Add A Department':
+            addDept();
+            break;
+
+          case 'Add A Role':
+            addRole();
+            break;
+
+          case 'Add An Employee':
+            addEmployee();
+            break;
+
+          case 'Update An Employee Role':
+            //determine old id, replace with new id
+            //employee old id not staying in employee obj
+            updateRole();
+            break;
+
+          case 'Delete A Department':
+            deleteDept();
+            break;
+
+          case 'Delete A Role':
+            console.log('User selected to delete a role')
+            break;
+
+          case 'Delete An Employee':
+            console.log('User selected to delete an employee')
+            break;
+        }
   })
 }
-
+// VIEW ALL OPTIONS
 const viewDepartments = () => {
   const sql = 'SELECT * FROM departments';
   db.query(sql, (err, res) => {
@@ -77,7 +93,6 @@ const viewDepartments = () => {
     startMenu();
   })
 }
-
 const viewRoles = () => {
   const sql = 'SELECT roles.title, roles.id, roles.salary, departments.dept_name FROM roles JOIN departments ON roles.dept_id = departments.id';
 
@@ -87,12 +102,11 @@ const viewRoles = () => {
     startMenu();
   })
 }
-
 const viewEmployees= () => {
   const sql = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name
   FROM employees
   JOIN roles ON employees.role_id = roles.id
-  JOIN departments ON roles.dept_id = departments.id ORDER BY dept_name`;
+  JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id`;
 
   db.query(sql, (err, res) => {
     if (err) throw err
@@ -101,6 +115,7 @@ const viewEmployees= () => {
   })
 }
 
+// ADD OPTIONS
 const addDept = () => {
   inquirer.prompt({
       type: 'input',
@@ -119,11 +134,11 @@ const addDept = () => {
       })
     })
 }
-
 const addRole = () => {
 console.log('Feature under construction.')
+startMenu();
 };
-
+//needs ability to select manager for employee being added
 const addEmployee = () => {
   inquirer.prompt([{
       type: 'input',
@@ -133,33 +148,60 @@ const addEmployee = () => {
       type: 'input',
       name: 'last_name',
       message: `Employee's last name:`
+    },{
+      type: 'list',
+      name: 'title',
+      message: 'Select employee role',
+      choices: chooseRole()
     }])
     .then(newEmployee => {
       first_name = newEmployee.first_name
       last_name = newEmployee.last_name
+      newEmployee.role_id = roleArr.indexOf(newEmployee.title) + 1;
+      console.log(newEmployee)
 
-      const sql = `INSERT INTO employees (first_name, last_name) VALUES (?,?)`;
-      const params = [first_name, last_name]
+      const sql = `INSERT INTO employees (first_name, last_name, role_id) 
+      VALUES (?,?,?)`;
+      const params = [first_name, last_name, newEmployee.role_id]
 
       db.query(sql, params, (err, result) => {
-        if (err) throw err
-        //console.log(result)
-        console.log(`New employee, ${first_name} ${last_name}, added successfully.`)
-        startMenu();
+        if (err){
+          console.log(err)
+        }
+        console.log(`New ${newEmployee.title}, ${first_name} ${last_name}, added successfully.`)
+        return startMenu();
       })
     })
 }
 
+// UPDATE EMPLOYEE ROLE
+let roleArr = [];
+const chooseRole = () => {
+  const sql = `SELECT * FROM roles`;
+
+  db.query(sql, (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      let role = res[i].title
+      roleArr.push(role)
+    }
+  })
+  console.log(roleArr)
+  return roleArr
+}
+
+let currentEmployee = {}
 const updateRole = () => {
   employeeArr = []
-  employee = {}
+  employee = [];
+
   const sql = `SELECT * FROM employees`;
   db.query(sql, (err, res) => {
+    if (err) throw err
     for (let i = 0; i < res.length; i++) {
       employee = [`${res[i].first_name} ${res[i].last_name}`]
       employeeArr.push(employee)
     }
-
     inquirer.prompt({
       type: 'list',
       name: 'updateEmployee',
@@ -167,15 +209,22 @@ const updateRole = () => {
       choices: employeeArr.map(employee => `${employee}`)
 
     }).then(employee => {
-      let index = employee.updateEmployee.indexOf(" ")
-      let first_name = employee.updateEmployee.substr(0, index)
-      let last_name = employee.updateEmployee.substr(index + 1)
-      //start
-      //end
-      roleArr = []
-      const sql2 = `SELECT * FROM roles`;
 
-      db.query(sql2, (err, res) => {
+      console.log(employee.updateEmployee)
+      console.log(employee)
+      currentEmployee.id = employee.updateEmployee.indexOf(" ") + 1
+      console.log(employeeArr)
+
+      let index = employee.updateEmployee.indexOf(" ")
+      currentEmployee.first_name = employee.updateEmployee.substr(0, index)
+      currentEmployee.last_name = employee.updateEmployee.substr(index + 1)
+    
+      console.log(currentEmployee, 'line 213')
+
+      roleArr = []
+      const sql = `SELECT roles.title FROM roles`;
+
+      db.query(sql, (err, res) => {
         if (err) throw err
         for (let i = 0; i < res.length; i++) {
           role = `${res[i].title}`
@@ -183,39 +232,56 @@ const updateRole = () => {
         }
         inquirer.prompt({
           type: 'list',
-          name: 'newRole',
+          name: 'updateRole',
           message: 'Select new role.',
           choices: roleArr.map(role => `${role}`)
 
         }).then(newRole => {
-          console.log(newRole)
-          //start
-          const sql = `SELECT * FROM employees WHERE first_name = ? AND last_name = ?`;
-          const params = [first_name, last_name]
-          db.query(sql, params, (err, res) => {
-            if (err) throw err
-            employee.currentRole_id = res[0].role_id
-            console.log(employee, 'line 184')
-          })
-          //end
+          let index = newRole.updateRole.indexOf('');
+          currentEmployee.updatedRole_id = index + 1
+
+          const sql = `UPDATE employees SET role_id = ? WHERE id = ? VALUES(?,?)`;
+          const params = [currentEmployee.updatedRole_id, currentEmployee.currentRole_id]
+          console.log(currentEmployee, 'line 249')
+
+            db.query(sql, params, (req, res) => {
+              if(err) throw err
+              console.log(currentEmployee)
+              console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`)
+              startMenu();
+            })
         })
-        console.log(employee, 'moving around')
-
-        //const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
-        // const params = [req.body.role_id, req.params.id];
-
-        // db.query(sql, params, (err, result) => {
-        //     if(err){
-
+      })
         //returns employee object from database
         //find current role_id
         //list new role options
         //update employee's old role_id with new role_id
         //return that employee's role has been changes to *new role title*
-      })
-      console.log(employee, 'moving around')
+      
     })
   })
+}
+
+// DELETE OPTIONS
+const deleteDept = () => {
+  let deptArr = [];
+  const sql = `SELECT departments.dept_name FROM departments`;
+
+  db.query(sql, (err, res) => {
+    if(err){console.log(err)}
+    for(let i = 0; i < res.length; i++) {
+      dept = res[i].dept_name
+      deptArr.push(dept)
+    }
+    inquirer.prompt({
+    type: 'list',
+    name: 'deleteDept',
+    message: 'Which department would you like to delete?',
+    choices: deptArr.map(dept => {`${dept}`})
+  }).then(deleteDept => {
+    console.log(deleteDept)
+  })
+})
 }
 
 //respond to requests not found
