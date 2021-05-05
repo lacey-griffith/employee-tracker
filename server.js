@@ -17,9 +17,9 @@ app.use('/api', apiRoutes)
 
 // TO DO routes
 // [x] view all employees w/ First, Last, ID, Title, Salary, Department 
-// [] delete a role
-// [] delete a department
-// [] delete an employee
+// [x] delete a role
+// [x] delete a department
+// [x] delete an employee
 // [x] add a department (prompt name)
 // [] add a role (prompt role.title, salary, role.dept)
 // [x] add an employee (prompt first, last, role.title, 
@@ -65,9 +65,7 @@ const startMenu = () => {
             break;
 
           case 'Update An Employee Role':
-            //need to get accurate employee.id, currently works but not correct id number 100% of time
             selectEmployee();
-            //updateRole();
             break;
 
           case 'Delete A Department':
@@ -75,13 +73,11 @@ const startMenu = () => {
             break;
 
           case 'Delete A Role':
-            console.log('User selected to delete a role')
-            startMenu();
+            chooseRoleDelete();
             break;
 
           case 'Delete An Employee':
-            console.log('User selected to delete an employee')
-            startMenu();
+            chooseEmployeeDelete();
             break;
         }
   })
@@ -113,7 +109,7 @@ const viewEmployees= () => {
 
   //change this back!!!!
   const sql2 = `SELECT * FROM employees`;
-  db.query(sql2, (err, res) => {
+  db.query(sql, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
@@ -145,6 +141,15 @@ startMenu();
 };
 //needs ability to select manager for employee being added
 const addEmployee = () => {
+  roleArr = []
+
+  const sql = `SELECT roles.title FROM roles`;
+  db.query(sql, (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      role = `${res[i].title}`
+      roleArr.push(role)
+    }
   inquirer.prompt([{
       type: 'input',
       name: 'first_name',
@@ -157,13 +162,12 @@ const addEmployee = () => {
       type: 'list',
       name: 'title',
       message: 'Select employee role',
-      choices: chooseRole()
+      choices: roleArr.map(role => `${role}`)
     }])
     .then(newEmployee => {
       first_name = newEmployee.first_name
       last_name = newEmployee.last_name
-      newEmployee.role_id = roleArr.indexOf(newEmployee.title) + 1;
-      console.log(newEmployee)
+      newEmployee.role_id = roleArr.indexOf(newEmployee.title) + 1
 
       const sql = `INSERT INTO employees (first_name, last_name, role_id) 
       VALUES (?,?,?)`;
@@ -177,6 +181,7 @@ const addEmployee = () => {
         return startMenu();
       })
     })
+  })
 }
 
 // UPDATE EMPLOYEE ROLE
@@ -208,79 +213,67 @@ const selectEmployee = () => {
       db.query(sql, params, (err, res) => {
         if(err) throw err;
         currentEmployee.id = res[0].id
+        chooseRole(currentEmployee)
+      })
+    })
+  })
+}
+const chooseRole = () => {
+  roleArr = []
+
+  const sql = `SELECT roles.title FROM roles`;
+  db.query(sql, (err, res) => {
+    if (err) throw err
+    for (let i = 0; i < res.length; i++) {
+      role = `${res[i].title}`
+      roleArr.push(role)
+    }
+    inquirer.prompt({
+      type: 'list',
+      name: 'updateRole',
+      message: 'Select new role.',
+      choices: roleArr.map(role => `${role}`)
+
+    }).then(newRole => {
+      currentEmployee.newRole = newRole.updateRole
+      
+      const sql = `SELECT id FROM roles WHERE roles.title = ?`
+      const params = [currentEmployee.newRole]
+      db.query(sql, params, (err, res) => {
+        if(err) throw err;
+        currentEmployee.newRole_id = res[0].id
         updateRole(currentEmployee)
       })
     })
   })
 }
-
-
-const chooseRole = () => {
-
-}
-
 const updateRole = (currentEmployee) => {
-      roleArr = []
-      const sql = `SELECT roles.title FROM roles`;
-
-      db.query(sql, (err, res) => {
-        if (err) throw err
-        for (let i = 0; i < res.length; i++) {
-          role = `${res[i].title}`
-          roleArr.push(role)
-        }
-        inquirer.prompt({
-          type: 'list',
-          name: 'updateRole',
-          message: 'Select new role.',
-          choices: roleArr.map(role => `${role}`)
-
-        }).then(newRole => {
-          currentEmployee.newRole = newRole.updateRole
-          
-          const sql = `SELECT id FROM roles WHERE roles.title = ?`
-          const params = [currentEmployee.newRole]
-          db.query(sql, params, (err, res) => {
-            if(err) throw err;
-            currentEmployee.newRole_id = res[0].id
-          })
-          inquirer.prompt({
-            type: 'list',
-            name: 'confirmUpdate',
-            message: 'Are you sure you want to update the role of this employee?',
-            choices: ['Confirm update.','Cancel, return to menu.']
-          }).then(data => {
-            //db.query()
-            if(data.confirmUpdate === "Cancel, return to menu."){
-              console.log('Update cancelled.')
-              startMenu();
-            }
-            if(data.confirmUpdate === "Confirm update."){
-              console.log(currentEmployee)
-              const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
-              const params = [currentEmployee.newRole_id, currentEmployee.id]
-              db.query(sql, params, (err, res) => {
-                console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated to ${currentEmployee.newRole}`)
-                startMenu();
-              })
-            }
-          })
-          //currentEmployee.updatedRole_id = roleArr.indexOf(`${newRole.updateRole}`) + 1
-
-          // const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
-          // const params = [currentEmployee.updatedRole_id, currentEmployee.id]
-
-          //   db.query(sql, params, (err, result) => {
-          //     if(err) throw err
-          //     console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`,)
-          //     startMenu();
-          //   })
-        })
+  inquirer.prompt({
+    type: 'list',
+    name: 'confirmUpdate',
+    message: 'Are you sure you want to update the role of this employee?',
+    choices: ['Confirm update.','Cancel, return to menu.']
+  }).then(data => {
+    //db.query()
+    if(data.confirmUpdate === "Cancel, return to menu."){
+      console.log('Update cancelled.')
+      startMenu();
+    }
+    if(data.confirmUpdate === "Confirm update."){
+      console.log(currentEmployee)
+      const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+      const params = [currentEmployee.newRole_id, currentEmployee.id]
+      db.query(sql, params, (err, res) => {
+        console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated to ${currentEmployee.newRole}`)
+        startMenu();
+      })
+    }
   })
 }
 
+
+// DELETE DEPARTMENT
 let currentDept = {};
-// DELETE OPTIONS
 const selectDept = () => {
   let deptArr = [];
   const sql = `SELECT * FROM departments`;
@@ -311,8 +304,6 @@ const selectDept = () => {
 })
 }
 deleteDept = (dept) => {
-  console.log(dept, 'line288')
-
     const sql = `DELETE FROM departments WHERE id = ?`;
     const params = [dept.id];
 
@@ -321,6 +312,88 @@ deleteDept = (dept) => {
       console.log(`${dept.dept_name} department successfully deleted.`)
       startMenu();
     })
+}
+
+//DELETE ROLE
+roleDelete = {}
+const chooseRoleDelete = () => {
+let deleteRoleArr = [];
+
+const sql = `SELECT roles.title FROM roles`;
+db.query(sql,(req, res) => {
+  for(let i = 0; i < res.length; i++){
+    role = res[i].title
+    deleteRoleArr.push(role)
+  }
+  inquirer.prompt({
+    type: 'list',
+    name: 'deleteRole',
+    message: 'Which role would you like to delete?',
+    choices: deleteRoleArr.map(role => `${role}`)
+  }).then(chosenRole => {
+    roleDelete.title = chosenRole.deleteRole
+    const sql = `SELECT id FROM roles WHERE roles.title = ?`;
+    const params = [roleDelete.title]
+    db.query(sql, params, (req, result) => {
+      roleDelete.id = result[0].id
+      return deleteRole(roleDelete)
+    })
+  })
+})
+}
+const deleteRole = (roleDelete) => {
+  const sql = `DELETE FROM roles WHERE id = ?`;
+  const params = [roleDelete.id]
+  db.query(sql, params, (err, res) => {
+    if(!res.affectedRows){
+      console.log('Role not found')
+    }
+    console.log(`${roleDelete.title} successfully deleted.`)
+    startMenu();
+  })
+}
+
+//DELETE EMPLOYEE
+empDelete = {}
+const chooseEmployeeDelete = () => {
+let deleteEmpArr = [];
+
+const sql = `SELECT * FROM employees`;
+db.query(sql,(req, res) => {
+  for(let i = 0; i < res.length; i++){
+    let employee = `${res[i].first_name} ${res[i].last_name}`
+    deleteEmpArr.push(employee)
+  }
+  inquirer.prompt({
+    type: 'list',
+    name: 'deleteEmp',
+    message: 'Which employee would you like to delete?',
+    choices: deleteEmpArr.map(employee => `${employee}`)
+  }).then(employee => {
+    let index = employee.deleteEmp.indexOf(" ")
+    empDelete.first_name = employee.deleteEmp.substr(0, index)
+    empDelete.last_name = employee.deleteEmp.substr(index + 1)
+    console.log(empDelete)
+    
+    const sql = `SELECT id FROM employees WHERE first_name = ? AND last_name = ?`;
+    const params = [empDelete.first_name, empDelete.last_name]
+    db.query(sql, params, (req, result) => {
+      empDelete.id = result[0].id
+      return deleteEmp(empDelete)
+    })
+  })
+})
+}
+const deleteEmp = () => {
+  const sql = `DELETE FROM employees WHERE id = ?`;
+  const params = [empDelete.id]
+  db.query(sql, params, (err, res) => {
+    if(!res.affectedRows){
+      console.log('Employee not found')
+    }
+    console.log(`${empDelete.first_name} ${empDelete.last_name} successfully deleted.`)
+    startMenu();
+  })
 }
 
 
