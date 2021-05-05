@@ -193,13 +193,12 @@ const chooseRole = () => {
 let currentEmployee = {}
 const updateRole = () => {
   employeeArr = []
-  employee = [];
 
   const sql = `SELECT * FROM employees`;
   db.query(sql, (err, res) => {
     if (err) throw err
     for (let i = 0; i < res.length; i++) {
-      employee = [`${res[i].first_name} ${res[i].last_name}`]
+      let employee = `${res[i].first_name} ${res[i].last_name}`
       employeeArr.push(employee)
     }
     inquirer.prompt({
@@ -210,16 +209,11 @@ const updateRole = () => {
 
     }).then(employee => {
 
-      console.log(employee.updateEmployee)
-      console.log(employee)
-      currentEmployee.id = employee.updateEmployee.indexOf(" ") + 1
-      console.log(employeeArr)
-
       let index = employee.updateEmployee.indexOf(" ")
       currentEmployee.first_name = employee.updateEmployee.substr(0, index)
       currentEmployee.last_name = employee.updateEmployee.substr(index + 1)
-    
-      console.log(currentEmployee, 'line 213')
+  
+      currentEmployee.id = employeeArr.indexOf(`${employee.updateEmployee}`) + 1
 
       roleArr = []
       const sql = `SELECT roles.title FROM roles`;
@@ -237,30 +231,29 @@ const updateRole = () => {
           choices: roleArr.map(role => `${role}`)
 
         }).then(newRole => {
-          let index = newRole.updateRole.indexOf('');
-          currentEmployee.updatedRole_id = index + 1
+          currentEmployee.updatedRole_id = roleArr.indexOf(`${newRole.updateRole}`) + 1
 
-          const sql = `UPDATE employees SET role_id = ? WHERE id = ? VALUES(?,?)`;
-          const params = [currentEmployee.updatedRole_id, currentEmployee.currentRole_id]
-          console.log(currentEmployee, 'line 249')
+          const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+          const params = [currentEmployee.updatedRole_id, currentEmployee.id]
 
-            db.query(sql, params, (req, res) => {
+            db.query(sql, params, (err, result) => {
               if(err) throw err
-              console.log(currentEmployee)
-              console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`)
+              console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`,)
               startMenu();
             })
         })
       })
+    })
+  })
+}
+
         //returns employee object from database
         //find current role_id
         //list new role options
         //update employee's old role_id with new role_id
         //return that employee's role has been changes to *new role title*
       
-    })
-  })
-}
+
 
 // DELETE OPTIONS
 const deleteDept = () => {
