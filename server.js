@@ -65,21 +65,23 @@ const startMenu = () => {
             break;
 
           case 'Update An Employee Role':
-            //determine old id, replace with new id
-            //employee old id not staying in employee obj
-            updateRole();
+            //need to get accurate employee.id, currently works but not correct id number 100% of time
+            selectEmployee();
+            //updateRole();
             break;
 
           case 'Delete A Department':
-            deleteDept();
+            selectDept();
             break;
 
           case 'Delete A Role':
             console.log('User selected to delete a role')
+            startMenu();
             break;
 
           case 'Delete An Employee':
             console.log('User selected to delete an employee')
+            startMenu();
             break;
         }
   })
@@ -95,8 +97,9 @@ const viewDepartments = () => {
 }
 const viewRoles = () => {
   const sql = 'SELECT roles.title, roles.id, roles.salary, departments.dept_name FROM roles JOIN departments ON roles.dept_id = departments.id';
-
-  db.query(sql, (err, res) => {
+  
+  const sql2 = `SELECT * FROM roles`;
+  db.query(sql2, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
@@ -108,7 +111,9 @@ const viewEmployees= () => {
   JOIN roles ON employees.role_id = roles.id
   JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id`;
 
-  db.query(sql, (err, res) => {
+  //change this back!!!!
+  const sql2 = `SELECT * FROM employees`;
+  db.query(sql2, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
@@ -175,23 +180,8 @@ const addEmployee = () => {
 }
 
 // UPDATE EMPLOYEE ROLE
-let roleArr = [];
-const chooseRole = () => {
-  const sql = `SELECT * FROM roles`;
-
-  db.query(sql, (err, res) => {
-    if (err) throw err
-    for (let i = 0; i < res.length; i++) {
-      let role = res[i].title
-      roleArr.push(role)
-    }
-  })
-  console.log(roleArr)
-  return roleArr
-}
-
 let currentEmployee = {}
-const updateRole = () => {
+const selectEmployee = () => {
   employeeArr = []
 
   const sql = `SELECT * FROM employees`;
@@ -208,13 +198,28 @@ const updateRole = () => {
       choices: employeeArr.map(employee => `${employee}`)
 
     }).then(employee => {
-
       let index = employee.updateEmployee.indexOf(" ")
       currentEmployee.first_name = employee.updateEmployee.substr(0, index)
       currentEmployee.last_name = employee.updateEmployee.substr(index + 1)
-  
-      currentEmployee.id = employeeArr.indexOf(`${employee.updateEmployee}`) + 1
 
+      const sql = `SELECT id FROM employees WHERE first_name = ? AND last_name = ?`;
+      const params = [currentEmployee.first_name, currentEmployee.last_name]
+
+      db.query(sql, params, (err, res) => {
+        if(err) throw err;
+        currentEmployee.id = res[0].id
+        updateRole(currentEmployee)
+      })
+    })
+  })
+}
+
+
+const chooseRole = () => {
+
+}
+
+const updateRole = (currentEmployee) => {
       roleArr = []
       const sql = `SELECT roles.title FROM roles`;
 
@@ -231,34 +236,54 @@ const updateRole = () => {
           choices: roleArr.map(role => `${role}`)
 
         }).then(newRole => {
-          currentEmployee.updatedRole_id = roleArr.indexOf(`${newRole.updateRole}`) + 1
-
-          const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
-          const params = [currentEmployee.updatedRole_id, currentEmployee.id]
-
-            db.query(sql, params, (err, result) => {
-              if(err) throw err
-              console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`,)
+          currentEmployee.newRole = newRole.updateRole
+          
+          const sql = `SELECT id FROM roles WHERE roles.title = ?`
+          const params = [currentEmployee.newRole]
+          db.query(sql, params, (err, res) => {
+            if(err) throw err;
+            currentEmployee.newRole_id = res[0].id
+          })
+          inquirer.prompt({
+            type: 'list',
+            name: 'confirmUpdate',
+            message: 'Are you sure you want to update the role of this employee?',
+            choices: ['Confirm update.','Cancel, return to menu.']
+          }).then(data => {
+            //db.query()
+            if(data.confirmUpdate === "Cancel, return to menu."){
+              console.log('Update cancelled.')
               startMenu();
-            })
+            }
+            if(data.confirmUpdate === "Confirm update."){
+              console.log(currentEmployee)
+              const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+              const params = [currentEmployee.newRole_id, currentEmployee.id]
+              db.query(sql, params, (err, res) => {
+                console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated to ${currentEmployee.newRole}`)
+                startMenu();
+              })
+            }
+          })
+          //currentEmployee.updatedRole_id = roleArr.indexOf(`${newRole.updateRole}`) + 1
+
+          // const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+          // const params = [currentEmployee.updatedRole_id, currentEmployee.id]
+
+          //   db.query(sql, params, (err, result) => {
+          //     if(err) throw err
+          //     console.log(`${currentEmployee.first_name} ${currentEmployee.last_name} successfully updated.`,)
+          //     startMenu();
+          //   })
         })
-      })
-    })
   })
 }
 
-        //returns employee object from database
-        //find current role_id
-        //list new role options
-        //update employee's old role_id with new role_id
-        //return that employee's role has been changes to *new role title*
-      
-
-
+let currentDept = {};
 // DELETE OPTIONS
-const deleteDept = () => {
+const selectDept = () => {
   let deptArr = [];
-  const sql = `SELECT departments.dept_name FROM departments`;
+  const sql = `SELECT * FROM departments`;
 
   db.query(sql, (err, res) => {
     if(err){console.log(err)}
@@ -270,12 +295,34 @@ const deleteDept = () => {
     type: 'list',
     name: 'deleteDept',
     message: 'Which department would you like to delete?',
-    choices: deptArr.map(dept => {`${dept}`})
-  }).then(deleteDept => {
-    console.log(deleteDept)
+    choices: deptArr.map(dept => `${dept}`)
+  })
+  .then(chosenDept => {
+    currentDept.dept_name = chosenDept.deleteDept
+
+    const sql = `SELECT id FROM departments WHERE departments.dept_name = ?`;
+    const params = [currentDept.dept_name];
+    db.query(sql, params, (err, result) => {
+      if(err) throw err;
+      currentDept.id = result[0].id
+      return deleteDept(currentDept)
+    })
   })
 })
 }
+deleteDept = (dept) => {
+  console.log(dept, 'line288')
+
+    const sql = `DELETE FROM departments WHERE id = ?`;
+    const params = [dept.id];
+
+    db.query(sql, params, (err, result) => {
+      if(err) throw err
+      console.log(`${dept.dept_name} department successfully deleted.`)
+      startMenu();
+    })
+}
+
 
 //respond to requests not found
 app.use((req, res) => {
