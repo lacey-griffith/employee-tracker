@@ -16,20 +16,6 @@ app.use(express.json());
 
 app.use('/api', apiRoutes)
 
-// TO DO routes
-// [x] view all employees w/ First, Last, ID, Title, Salary, Department 
-// [x] delete a role
-// [x] delete a department
-// [x] delete an employee
-// [x] add a department (prompt name)
-// [] add a role (prompt role.title, salary, role.dept)
-// [x] add an employee (prompt first, last, role.title, 
-// [] add manager_id?? to add employee
-// [x] update employee role
-// BONUS **
-// [] view employees by department
-// [] view employees by manager
-// [] view utilized budget of department (add salaries)
 
 const startMenu = () => {
   inquirer.prompt({
@@ -82,6 +68,7 @@ const startMenu = () => {
         }
   })
 }
+
 // VIEW ALL OPTIONS
 const viewDepartments = () => {
   const sql = 'SELECT * FROM departments';
@@ -94,7 +81,6 @@ const viewDepartments = () => {
 const viewRoles = () => {
   const sql = 'SELECT roles.title, roles.id, roles.salary, departments.dept_name FROM roles JOIN departments ON roles.dept_id = departments.id';
   
-  //const sql2 = `SELECT * FROM roles`;
   db.query(sql, (err, res) => {
     if (err) throw err
     console.table(res)
@@ -107,7 +93,9 @@ const viewEmployees= () => {
   JOIN roles ON employees.role_id = roles.id
   JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id`;
 
-  db.query(sql, (err, res) => {
+const sql2= `SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id, roles.title, roles.salary, departments.dept_name FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id;`
+
+  db.query(sql2, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
@@ -156,7 +144,6 @@ const addRole = () => {
       message: 'Which department does the new role belong to?',
       choices: deptArr.map(dept => `${dept}`)
     }]).then(dept => {
-      console.log(dept)
       newRoleData.newRole = dept.addRole
       newRoleData.newSalary = dept.addRoleSalary
       newRoleData.dept = dept.deptOfRole
@@ -170,9 +157,7 @@ const addRole = () => {
     })
   })
 }
-
 const completeAddRole = (newRoleData) => {
-  console.log(newRoleData)
   const sql = `INSERT INTO roles (title, salary, dept_id) VALUES (?,?,?)`;
   const params = [newRoleData.newRole, newRoleData.newSalary, newRoleData.id]
   db.query(sql, params, (err, res) => {
@@ -181,8 +166,7 @@ const completeAddRole = (newRoleData) => {
     startMenu();
   })
 }
-
-//needs ability to select manager for employee being added
+newEmployeeData = {};
 const addEmployee = () => {
   roleArr = []
 
@@ -193,35 +177,73 @@ const addEmployee = () => {
       role = `${res[i].title}`
       roleArr.push(role)
     }
-  inquirer.prompt([{
-      type: 'input',
-      name: 'first_name',
-      message: `Employee's first name:`
-    }, {
-      type: 'input',
-      name: 'last_name',
-      message: `Employee's last name:`
-    },{
+    inquirer.prompt([{
+        type: 'input',
+        name: 'first_name',
+        message: `Employee's first name:`
+      }, {
+        type: 'input',
+        name: 'last_name',
+        message: `Employee's last name:`
+      }, {
+        type: 'list',
+        name: 'title',
+        message: 'Select employee role',
+        choices: roleArr.map(role => `${role}`)
+      }])
+      .then(employee => {
+        managerArr = [];
+        newEmployeeData.first_name = employee.first_name
+        newEmployeeData.last_name = employee.last_name
+        newEmployeeData.title = employee.title
+
+        const sql = `SELECT id FROM roles WHERE roles.title = ?`
+        const params = [newEmployeeData.title]
+        db.query(sql, params, (err, res) => {
+          newEmployeeData.role_id = res[0].id
+          selectManager(newEmployeeData);
+        })
+      })
+  })
+}
+const completeAddEmployee = (newEmployeeData) => {
+  const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
+  VALUES (?,?,?,?)`;
+  const params = [newEmployeeData.first_name, newEmployeeData.last_name, newEmployeeData.role_id, newEmployeeData.manager_id]
+
+  db.query(sql, params, (err, result) => {
+    if (err){
+      console.log(err)
+    }
+    console.log(`New ${newEmployeeData.title}, ${newEmployeeData.first_name} ${newEmployeeData.last_name}, added successfully.`)
+    return startMenu();
+  })
+}
+const selectManager = (newEmployeeData) => {
+
+  const sql = `SELECT employees.id, employees.first_name, employees.last_name, roles.title FROM employees JOIN roles ON employees.role_id = roles.id WHERE roles.title LIKE '%Manager%' OR roles.title LIKE '%Director%'`;
+
+  db.query(sql, (err, res) => {
+    for (let i = 0; i < res.length; i++) {
+      manager = `${res[i].first_name} ${res[i].last_name}`, `${res[i].title}`
+      managerArr.push(manager)
+    }
+    inquirer.prompt({
       type: 'list',
-      name: 'title',
-      message: 'Select employee role',
-      choices: roleArr.map(role => `${role}`)
-    }])
-    .then(newEmployee => {
-      first_name = newEmployee.first_name
-      last_name = newEmployee.last_name
-      newEmployee.role_id = roleArr.indexOf(newEmployee.title) + 1
+      name: 'manager',
+      message: 'Select manager',
+      choices: managerArr.map(manager => `${manager}`)
+    }).then(manager => {
+      newEmployeeData.manager = manager.manager
 
-      const sql = `INSERT INTO employees (first_name, last_name, role_id) 
-      VALUES (?,?,?)`;
-      const params = [first_name, last_name, newEmployee.role_id]
-
-      db.query(sql, params, (err, result) => {
-        if (err){
-          console.log(err)
-        }
-        console.log(`New ${newEmployee.title}, ${first_name} ${last_name}, added successfully.`)
-        return startMenu();
+      let index = manager.manager.indexOf(" ")
+      newEmployeeData.manager_first_name = manager.manager.substr(0, index)
+      newEmployeeData.manager_last_name = manager.manager.substr(index + 1)
+      const sql = `SELECT id FROM employees WHERE first_name = ? AND last_name = ?`;
+      const params = [newEmployeeData.manager_first_name, newEmployeeData.manager_last_name]
+      db.query(sql, params, (req, res) => {
+        newEmployeeData.manager_id = res[0].id
+        completeAddEmployee(newEmployeeData)
       })
     })
   })
@@ -314,7 +336,6 @@ const updateRole = (currentEmployee) => {
   })
 }
 
-
 // DELETE DEPARTMENT
 let currentDept = {};
 const selectDept = () => {
@@ -322,7 +343,7 @@ const selectDept = () => {
   const sql = `SELECT * FROM departments`;
 
   db.query(sql, (err, res) => {
-    if(err){console.log(err)}
+    if(err) throw err
     for(let i = 0; i < res.length; i++) {
       dept = res[i].dept_name
       deptArr.push(dept)
@@ -346,7 +367,7 @@ const selectDept = () => {
   })
 })
 }
-deleteDept = (dept) => {
+const deleteDept = (dept) => {
     const sql = `DELETE FROM departments WHERE id = ?`;
     const params = [dept.id];
 
@@ -416,7 +437,6 @@ db.query(sql,(req, res) => {
     let index = employee.deleteEmp.indexOf(" ")
     empDelete.first_name = employee.deleteEmp.substr(0, index)
     empDelete.last_name = employee.deleteEmp.substr(index + 1)
-    console.log(empDelete)
     
     const sql = `SELECT id FROM employees WHERE first_name = ? AND last_name = ?`;
     const params = [empDelete.first_name, empDelete.last_name]

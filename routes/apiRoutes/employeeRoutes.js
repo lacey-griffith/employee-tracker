@@ -71,15 +71,15 @@ db.query(sql, params, (err, result) => {
 // create an employee
 // needs ability to select role and ** manager **
 router.post('/employee', ({body}, res) => {
-const errors = checkInput(body, 'first_name', 'last_name')
+const errors = checkInput(body, 'first_name', 'last_name','role_id','manager_id')
 
 if (errors) {
     res.status(400).json({error: errors})
     return;
 }
-const sql = `INSERT INTO employees (first_name, last_name) 
-            VALUES (?,?)`;
-const params = [body.first_name, body.last_name];
+const sql = `INSERT INTO employees (first_name, last_name, role_id, manager_id) 
+            VALUES (?,?,?,?)`;
+const params = [body.first_name, body.last_name, body.role_id, body.manager_id];
 
 db.query(sql, params, (err, result) => {
     if (err) {

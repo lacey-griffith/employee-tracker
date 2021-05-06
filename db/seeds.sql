@@ -18,22 +18,22 @@ VALUES
 ('Cashier', 25000, 5),
 ('Testing Role', 1000, 6);
 
-INSERT INTO employees (first_name, last_name, role_id)
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES
-('Vicki','Trevors',1),
-('John','Miller',2),
-('Jasmine','Swillman',7),
-('Ronald', 'Firbank',7),
-('Virginia', 'Woolf',4),
-('Piers', 'Gaveston',7),
-('Charles', 'LeRoi',3),
-('Katherine', 'Mansfield',7),
-('Dora', 'Carrington',7),
-('Edward', 'Bellamy',4),
-('Montague', 'Summers',5),
-('Octavia', 'Butler',6),
-('Riley','Brookes',7),
-('Unica', 'Zurn',7),
-('Bradley','Morgan',7),
-('Brianna','Miller',7);
+('Vicki','Trevors',1,1),
+('John','Miller',2,2),
+('Jasmine','Swillman',7,5),
+('Ronald', 'Firbank',7,10),
+('Virginia', 'Woolf',4,5),
+('Piers', 'Gaveston',7,12),
+('Charles', 'LeRoi',3,7),
+('Katherine', 'Mansfield',7,12),
+('Dora', 'Carrington',7,11),
+('Edward', 'Bellamy',4,10),
+('Montague', 'Summers',5,1),
+('Octavia', 'Butler',6,12),
+('Riley','Brookes',7,10),
+('Unica', 'Zurn',7,5),
+('Bradley','Morgan',7,5),
+('Brianna','Miller',7,1);
 
