@@ -68,8 +68,6 @@ db.query(sql, params, (err, result) => {
 })
 });
 
-// create an employee
-// needs ability to select role and ** manager **
 router.post('/employee', ({body}, res) => {
 const errors = checkInput(body, 'first_name', 'last_name','role_id','manager_id')
 

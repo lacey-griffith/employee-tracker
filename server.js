@@ -88,14 +88,10 @@ const viewRoles = () => {
   })
 }
 const viewEmployees= () => {
-  const sql = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, roles.salary, departments.dept_name
-  FROM employees
-  JOIN roles ON employees.role_id = roles.id
-  JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id`;
 
-const sql2= `SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id, roles.title, roles.salary, departments.dept_name FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id;`
+const sql= `SELECT employees.id, employees.first_name, employees.last_name, employees.manager_id, roles.title, roles.salary, departments.dept_name FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id;`
 
-  db.query(sql2, (err, res) => {
+  db.query(sql, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
