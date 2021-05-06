@@ -1,4 +1,5 @@
 const express = require('express');
+const { createPromptModule } = require('inquirer');
 const router = require('express').Router();
 
 const inquirer = require('inquirer');
@@ -48,7 +49,6 @@ const startMenu = () => {
             break;
 
           case 'View All Employees':
-            //once role_id is established for new employee, change the display back to JOIN statements
             viewEmployees();
             break;
 
@@ -94,8 +94,8 @@ const viewDepartments = () => {
 const viewRoles = () => {
   const sql = 'SELECT roles.title, roles.id, roles.salary, departments.dept_name FROM roles JOIN departments ON roles.dept_id = departments.id';
   
-  const sql2 = `SELECT * FROM roles`;
-  db.query(sql2, (err, res) => {
+  //const sql2 = `SELECT * FROM roles`;
+  db.query(sql, (err, res) => {
     if (err) throw err
     console.table(res)
     startMenu();
@@ -107,8 +107,6 @@ const viewEmployees= () => {
   JOIN roles ON employees.role_id = roles.id
   JOIN departments ON roles.dept_id = departments.id ORDER BY employees.id`;
 
-  //change this back!!!!
-  const sql2 = `SELECT * FROM employees`;
   db.query(sql, (err, res) => {
     if (err) throw err
     console.table(res)
@@ -136,9 +134,54 @@ const addDept = () => {
     })
 }
 const addRole = () => {
-console.log('Feature under construction.')
-startMenu();
-};
+  deptArr = []
+  newRoleData = {}
+  const sql = `SELECT dept_name FROM departments`;
+  db.query(sql, (err, res) => {
+    for (let i = 0; i < res.length; i++) {
+      dept = res[i].dept_name
+      deptArr.push(dept)
+    }
+    inquirer.prompt([{
+      type: 'input',
+      name: 'addRole',
+      message: 'What is the job title of the role?'
+    }, {
+      type: 'input',
+      name: 'addRoleSalary',
+      message: 'What is the salary of the new role?'
+    }, {
+      type: 'list',
+      name: 'deptOfRole',
+      message: 'Which department does the new role belong to?',
+      choices: deptArr.map(dept => `${dept}`)
+    }]).then(dept => {
+      console.log(dept)
+      newRoleData.newRole = dept.addRole
+      newRoleData.newSalary = dept.addRoleSalary
+      newRoleData.dept = dept.deptOfRole
+
+      const sql = `SELECT id FROM departments WHERE dept_name = ?`;
+      const params = [newRoleData.dept]
+      db.query(sql, params, (err, res) => {
+        newRoleData.id = res[0].id
+        completeAddRole(newRoleData);
+      })
+    })
+  })
+}
+
+const completeAddRole = (newRoleData) => {
+  console.log(newRoleData)
+  const sql = `INSERT INTO roles (title, salary, dept_id) VALUES (?,?,?)`;
+  const params = [newRoleData.newRole, newRoleData.newSalary, newRoleData.id]
+  db.query(sql, params, (err, res) => {
+    if(err) throw err;
+    console.log(`${newRoleData.newRole} added successfully!`)
+    startMenu();
+  })
+}
+
 //needs ability to select manager for employee being added
 const addEmployee = () => {
   roleArr = []

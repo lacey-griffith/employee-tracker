@@ -20,7 +20,27 @@ router.get('/roles',(req, res) => {
 })
 
 // create a role
-// needs ability to select department of role
+router.post('/role', ({body},res) => {
+  const errors = checkInput(body, 'title', 'salary', 'dept_id')
+  if(errors){
+    res.json({error: errors});
+    return
+  }
+  const sql = `INSERT INTO roles (title, salary, dept_id) VALUES (?,?,?)`;
+  const params = [body.title, body.salary, body.dept_id];
+
+db.query(sql, params, (err, result) => {
+    if (err) {
+    res.status(400).json({
+        error: err.message
+    })
+    }
+    res.json({
+    message: 'Role added successfully!',
+    data: body
+    })
+})
+  })
   
 //delete a role
 router.delete('/role/:id', (req, res) => {
