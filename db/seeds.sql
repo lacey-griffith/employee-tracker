@@ -35,6 +35,5 @@ VALUES
 ('Riley','Brookes',7,10),
 ('Unica', 'Zurn',7,5),
 ('Bradley','Morgan',7,5),
-('Brianna','Miller',7,1),
-('Felix','BoBelix',NULL,1);
+('Brianna','Miller',7,1);
 
